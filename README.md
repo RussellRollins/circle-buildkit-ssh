@@ -1,5 +1,7 @@
 # circle-buildkit-ssh
 
+[![CircleCI](https://circleci.com/gh/RussellRollins/circle-buildkit-ssh.svg?style=svg)](https://circleci.com/gh/RussellRollins/circle-buildkit-ssh)
+
 This project illustrates how to use the new [experimental Docker BuildKit APIs](https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/experimental.md) to build a project in CircleCI that relies on a private Go module.
 
 This process allows you to more easily share a Dockerfile between local and CI configuration. It also lets you easily make use of the Docker build cache, if you have the `docker_layer_cache` feature enabled in CircleCI (this project does not).
