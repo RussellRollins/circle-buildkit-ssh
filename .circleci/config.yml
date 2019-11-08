@@ -1,0 +1,52 @@
+---
+version: 2
+jobs:
+  build:
+    docker:
+      # This buildpack-deps image has Docker and curl and a few other niceties.
+      - image: circleci/buildpack-deps:xenial-curl
+
+    # DOCKER_BUILDKIT will get us access to new experimental APIs for docker build
+    environment:
+      DOCKER_BUILDKIT=1      
+
+    steps:
+      # Note that in this case, we must checkout before add_ssh_keys, as the key we add
+      # is scoped to GitHub, but does not have permissions for this repo.
+      - checkout
+
+      # Key with access to our private module dependency.
+      # In this case, public key added at:
+      #   https://github.com/RussellRollins/circle-buildkit-private-dep/settings/keys
+      # Private key added at:
+      #   https://circleci.com/gh/RussellRollins/circle-buildkit-ssh/edit#ssh
+      - add_ssh_keys:
+          fingerprints:
+            - "5f:69:ec:e0:42:ed:8d:7d:13:9e:04:00:2a:0e:c1:66"
+
+      # We need a fairly recent Docker, with at least API version 1.39. This is
+      # the most recent version listed at:
+      #   https://circleci.com/docs/2.0/building-docker-images/#docker-version
+      - setup_remote_docker:
+          version: 18.09.3
+
+      - run:
+          name: Docker Build with Private SSH Module
+          command: |
+            # Note that the "id_rsa_FOO" key name is based on the fingerprint of the SSH key
+            # added in add_ssh_keys, but with colons removed.
+            docker build \
+              --tag doer \
+              --ssh default \
+              --secret id=ssh.config,src="${HOME}/project/.circleci/ssh_config" \
+              --secret id=ssh.key,src="${HOME}/.ssh/id_rsa_5f69ece042ed8d7d139e04002a0ec166" \
+              --progress=plain \
+              .
+            # And go ahead and run it just to prove it worked.
+            docker run doer
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
